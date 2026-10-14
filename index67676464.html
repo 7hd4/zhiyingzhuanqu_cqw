@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFFFFF">
+<title>自营专区</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background-color: #F7F8FA; color: #1D2129; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding-bottom: 100px; -webkit-font-smoothing: antialiased; overflow-x: hidden; min-height: 100vh; }
+  .page { display: none; min-height: calc(100vh - 100px); position: relative; }
+  .page.active { display: block; }
+  #homePage.active { display: flex; flex-direction: column; height: calc(100vh - 100px); overflow: hidden; }
+  .empty { text-align: center; color: #86909C; padding: 60px 0; font-size: 16px; }
+  .home-header { background: #FFFFFF; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-radius: 0 0 24px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo { width: 46px; height: 46px; background: linear-gradient(135deg, #B3D4FF, #6C9EFF); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .header-title { font-size: 22px; font-weight: bold; color: #1D2129; }
+  .header-more { font-size: 15px; color: #86909C; display: flex; align-items: center; cursor: pointer; }
+  .tabs { background: transparent; padding: 12px 20px 4px; display: flex; gap: 10px; }
+  .tab { flex: 1; height: 44px; border-radius: 22px; background: #FFFFFF; color: #86909C; border: none; font-size: 15px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .tab.active { background: #1677FF; color: #FFFFFF; box-shadow: 0 4px 10px rgba(22, 119, 255, 0.3); }
+  .search-box { background: transparent; padding: 8px 20px 12px; display: flex; gap: 10px; }
+  .search-box input { flex: 1; height: 48px; border-radius: 24px; background: #FFFFFF; border: none; padding: 0 20px; font-size: 15px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .search-box button { width: 84px; height: 48px; border-radius: 24px; background: #1677FF; color: white; border: none; font-size: 15px; font-weight: bold; }
+  .list-container { padding: 10px 16px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+  .card { background: #FFFFFF; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .card-title { font-size: 19px; font-weight: bold; color: #1D2129; }
+  .card-price { font-size: 20px; font-weight: bold; color: #1677FF; }
+  .card-desc { font-size: 14px; color: #86909C; margin-bottom: 18px; }
+  .card-actions { display: flex; justify-content: space-between; align-items: center; }
+  .card-tip { font-size: 12px; color: #C9CDD4; }
+  .card-btn-group { display: flex; gap: 8px; }
+  .btn-primary { padding: 0 20px; height: 38px; border-radius: 19px; background: #1677FF; color: white; border: none; font-size: 14px; font-weight: bold; }
+  .btn-secondary { padding: 0 20px; height: 38px; border-radius: 19px; background: #F2F3F5; color: #4E5969; border: none; font-size: 14px; font-weight: bold; }
+  .product-img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; background: #F2F3F5; margin-bottom: 14px; }
+  .category-header { background: #FFFFFF; padding: 16px 20px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; margin-bottom: 8px; z-index: 9; border-radius: 0 0 24px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  .header-icon-btn { width: 36px; height: 36px; background: #F2F3F5; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4E5969; }
+  .header-icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .category-header h2 { font-size: 18px; font-weight: bold; }
+  .main-content { flex: 1; display: flex; overflow: hidden; position: relative; height: calc(100vh - 150px); }
+  .sidebar { width: 95px; background: #F7F8FA; overflow-y: auto; flex-shrink: 0; padding-bottom: 20px; scrollbar-width: none; }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar-item { height: 56px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #4E5969; cursor: pointer; position: relative; transition: all 0.2s; }
+  .sidebar-item.active { color: #1D2129; font-weight: bold; background: #FFFFFF; }
+  .sidebar-item.active::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 4px; background: #1677FF; border-radius: 0 4px 4px 0; }
+  .content-area { flex: 1; background: #FFFFFF; overflow-y: auto; padding: 16px 14px 40px; -webkit-overflow-scrolling: touch; }
+  .section-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: bold; margin-bottom: 16px; margin-top: 10px; }
+  .section-icon { width: 28px; height: 28px; background: linear-gradient(135deg, #B3D4FF, #6C9EFF); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: white; }
+  .grid-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 10px; margin-bottom: 24px; }
+  .grid-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .grid-icon { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+  .grid-text { font-size: 12px; color: #4E5969; text-align: center; line-height: 1.3; }
+  .bottom-nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; background: #FFFFFF; border-radius: 40px; display: flex; justify-content: space-around; align-items: center; padding: 8px 4px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04); z-index: 999; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #86909C; font-size: 11px; cursor: pointer; transition: all 0.3s ease; position: relative; width: 60px; }
+  .nav-icon-wrapper { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; border-radius: 16px; transition: all 0.3s ease; }
+  .nav-icon-wrapper svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-item.active { color: #1677FF; font-weight: bold; }
+  .nav-item.active .nav-icon-wrapper { background: #E8F3FF; padding: 4px 12px; width: auto; border-radius: 16px; }
+  .badge { position: absolute; top: -4px; right: 4px; background: #F53F3F; color: white; font-size: 10px; padding: 4px 6px; border-radius: 10px; font-weight: bold; border: 2px solid #FFFFFF; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px; box-sizing: border-box; opacity: 1; transition: opacity 0.3s; }
+  .modal-overlay.hidden { display: none; opacity: 0; }
+  .modal-content { background: #FFFFFF; width: 100%; max-width: 380px; max-height: 85vh; overflow-y: auto; border-radius: 24px; padding: 24px 20px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+  .close-btn { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; color: #86909C; cursor: pointer; z-index: 10; }
+  .close-btn svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; }
+  .modal-header { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .logo-box { width: 64px; height: 64px; border: 2px solid #F2F3F5; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #F53F3F; background: #FFF1F0; }
+  .modal-title { font-size: 22px; font-weight: bold; color: #1D2129; }
+  .modal-subtitle { font-size: 14px; color: #86909C; }
+  .input-group { display: flex; align-items: center; background: #F7F8FA; border-radius: 12px; padding: 0 16px; height: 52px; margin-bottom: 16px; border: 1px solid transparent; transition: border 0.2s; }
+  .input-group:focus-within { border-color: #5B8FF9; background: #FFFFFF; }
+  .input-icon { width: 20px; height: 20px; stroke: #86909C; fill: none; stroke-width: 2; margin-right: 12px; }
+  .input-field { flex: 1; border: none; background: transparent; font-size: 16px; color: #1D2129; outline: none; height: 100%; min-width: 0; }
+  .input-field::placeholder { color: #C9CDD4; font-size: 15px; }
+  .eye-icon { width: 20px; height: 20px; stroke: #86909C; fill: none; stroke-width: 2; cursor: pointer; margin-left: 10px; }
+  .captcha-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; width: 100%; }
+  .captcha-input-group { flex: 1; min-width: 0; display: flex; align-items: center; background: #F7F8FA; border-radius: 12px; padding: 0 12px; height: 52px; border: 1px solid transparent; transition: border 0.2s; }
+  .captcha-input-group:focus-within { border-color: #5B8FF9; background: #FFFFFF; }
+  .captcha-img-box, .code-btn { flex: 0 0 33.33%; width: 33.33%; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; box-sizing: border-box; }
+  .captcha-img-box { background: #E5E6EB; }
+  .captcha-img-box canvas { width: 100% !important; height: 100% !important; display: block; object-fit: fill; }
+  .code-btn { background: #E8F3FF; color: #1677FF; border: none; font-size: 13px; font-weight: bold; }
+  .code-btn:disabled { background: #F2F3F5; color: #C9CDD4; }
+  .forgot-password { text-align: left; font-size: 14px; color: #5B8FF9; margin-bottom: 24px; cursor: pointer; }
+  .login-btn, .register-btn { width: 100%; height: 52px; border-radius: 26px; background: #5B8FF9; color: white; border: none; font-size: 17px; font-weight: bold; box-shadow: 0 4px 12px rgba(91, 143, 249, 0.3); cursor: pointer; }
+  .login-btn:active, .register-btn:active { transform: scale(0.98); }
+  .modal-footer { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 24px; }
+  .footer-text { font-size: 14px; color: #4E5969; }
+  .footer-link { font-size: 14px; color: #5B8FF9; text-decoration: none; font-weight: bold; cursor: pointer; }
+  .user-profile { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; gap: 16px; }
+  .user-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #B3D4FF, #6C9EFF); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white; }
+  .user-name { font-size: 20px; font-weight: bold; color: #1D2129; }
+  .logout-btn { width: 200px; height: 48px; border-radius: 24px; background: #FFF1F0; color: #F53F3F; border: 1px solid #FFCCC7; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+  .dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 100000; }
+  .dialog-overlay.show { display: flex; }
+  .dialog { background: white; width: 85%; max-width: 400px; border-radius: 20px; padding: 24px; }
+  .dialog-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; text-align: center; }
+  .dialog-content { font-size: 15px; color: #4E5969; line-height: 1.6; margin-bottom: 20px; text-align: center; }
+  .dialog-btns { display: flex; gap: 12px; flex-direction: column; }
+  .dialog-btn { height: 48px; border-radius: 24px; border: none; font-size: 16px; font-weight: bold; }
+  .dialog-btn.primary { background: #1677FF; color: white; }
+  .dialog-btn.secondary { background: #F2F3F5; color: #4E5969; }
+  .admin-header { background: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; }
+  .admin-tabs { display: flex; background: #fff; padding: 10px 15px; gap: 6px; border-bottom: 1px solid #f0f0f0; position: sticky; top: 60px; z-index: 999; overflow-x: auto; }
+  .admin-tab { flex: 1; min-width: 70px; height: 40px; border-radius: 20px; background: #F2F3F5; color: #4E5969; border: none; font-size: 13px; font-weight: bold; transition: all 0.2s; }
+  .admin-tab.active { background: #1677FF; color: #fff; box-shadow: 0 2px 8px rgba(22,119,255,0.2); }
+  .admin-content { padding: 15px; padding-bottom: 100px; }
+  .admin-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
+  .admin-card-info { flex: 1; min-width: 0; margin-right: 10px; }
+  .admin-card-title { font-size: 15px; font-weight: bold; color: #1D2129; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-card-desc { font-size: 12px; color: #86909C; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .admin-btn-edit { padding: 6px 10px; background: #E8F3FF; color: #1677FF; border: none; border-radius: 6px; font-size: 12px; }
+  .admin-btn-del { padding: 6px 10px; background: #FFF1F0; color: #F53F3F; border: none; border-radius: 6px; font-size: 12px; }
+  .admin-fab { position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #1677FF; color: #fff; border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(22,119,255,0.4); z-index: 9999; transition: transform 0.2s; }
+  .admin-fab:active { transform: scale(0.95); }
+</style>
+</head><body>
+
+<div id="homePage" class="page active">
+  <div class="home-header">
+    <div class="header-left">
+      <div class="header-logo"><span>👑</span></div>
+      <div class="header-title" id="mainTitle">自营专区</div>
+    </div>
+    <div class="header-more" onclick="refreshCurrent()">🔄 刷新</div>
+  </div>
+  <div class="tabs">
+    <button id="tabTask" class="tab active" onclick="switchTab('task')">📋 任务</button>
+    <button id="tabProduct" class="tab" onclick="switchTab('product')">🛍️ 商品</button>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="搜索任务名称...">
+    <button onclick="doSearch()">搜索</button>
+  </div>
+  <div class="list-container" id="listContainer"><div class="empty">正在加载数据...</div></div>
+  <div id="errorBar" style="color: #F53F3F; font-size: 12px; text-align: center; padding: 10px;"></div>
+</div>
+
+<div id="categoryPage" class="page">
+  <div class="category-header">
+    <div class="header-icon-btn"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></div>
+    <h2>分类</h2>
+    <div class="header-icon-btn"><svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg></div>
+  </div>
+  <div class="main-content">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content-area" id="contentArea"></div>
+  </div>
+</div>
+
+<div id="orderPage" class="page">
+  <div class="home-header">
+    <div class="header-left">
+      <div class="header-logo"><span>🧾</span></div>
+      <div class="header-title">我的订单</div>
+    </div>
+    <div class="header-more" onclick="loadMyOrders()">刷新</div>
+  </div>
+  <div class="list-container" id="orderListContainer" style="padding:10px 16px;">
+    <div class="empty">正在加载...</div>
+  </div>
+</div>
+
+<div id="messagePage" class="page"><div class="empty">🚧 消息页面正在开发中...</div></div>
+
+<div id="minePage" class="page">
+  <div id="loginModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeLoginModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      <div id="loginView">
+        <div class="modal-header">
+          <div class="logo-box">世界<br>商铺</div>
+          <div class="modal-title">账号登录</div>
+          <div class="modal-subtitle">欢迎回来，请登录您的账号</div>
+        </div>
+        <div class="input-group">
+          <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <input type="text" id="loginAccount" class="input-field" placeholder="请输入用户名">
+        </div>
+        <div class="input-group">
+          <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <input type="password" id="loginPassword" class="input-field" placeholder="请输入密码">
+          <svg class="eye-icon" id="eyeIcon" onclick="togglePasswordVisibility()" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </div>
+        <div class="captcha-row">
+          <div class="captcha-input-group">
+            <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
+            <input type="text" id="loginCaptcha" class="input-field" placeholder="请输入验证码" maxlength="4">
+          </div>
+          <div class="captcha-img-box" onclick="drawCaptcha()"><canvas id="captchaCanvas" width="120" height="52"></canvas></div>
+        </div>
+        <div class="forgot-password" onclick="showToast('请联系客服找回密码')">忘记密码？</div>
+        <button class="login-btn" onclick="handleLogin()">立即登录</button>
+        <div class="modal-footer"><div class="footer-text">还没有账号？ <span class="footer-link" onclick="switchAuthView('register')">立即注册</span></div></div>
+      </div>
+
+      <div id="registerView" style="display: none;">
+        <div class="modal-header">
+          <div class="logo-box">世界<br>商铺</div>
+          <div class="modal-title">注册账号</div>
+          <div class="modal-subtitle">请填写以下信息创建账号</div>
+        </div>
+        <div class="input-group">
+          <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <input type="text" id="regAccount" class="input-field" placeholder="请输入自定义账号">
+        </div>
+        <div class="input-group">
+          <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <input type="password" id="regPassword" class="input-field" placeholder="请设置密码">
+        </div>
+        <div class="captcha-row">
+          <div class="captcha-input-group">
+            <svg class="input-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <input type="text" id="regCode" class="input-field" placeholder="6位验证码" maxlength="6">
+          </div>
+          <button id="sendCodeBtn" class="code-btn" onclick="sendVerifyCode()">获取验证码</button>
+        </div>
+        <button class="register-btn" style="margin-top: 16px;" onclick="handleRegister()">立即注册</button>
+        <div class="modal-footer"><div class="footer-text">已有账号？ <span class="footer-link" onclick="switchAuthView('login')">返回登录</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="userView" class="user-profile" style="display: none;">
+    <div class="user-avatar">👤</div>
+    <div class="user-name" id="displayUserName">未登录</div>
+    <button class="logout-btn" onclick="handleLogout()">退出登录</button>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchNav('home', this)"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div><span>首页</span></div>
+  <div class="nav-item" onclick="switchNav('category', this)"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div><span>分类</span></div>
+  <div class="nav-item" onclick="switchNav('order', this)"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div><span>订单</span></div>
+  <div class="nav-item" onclick="switchNav('message', this)"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="badge">2</span></div><span>消息</span></div>
+  <div class="nav-item" onclick="switchNav('mine', this)"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><span>我的</span></div>
+</div>
+
+<div class="dialog-overlay" id="dialog">
+  <div class="dialog">
+    <div class="dialog-title" id="dialogTitle"></div>
+    <div class="dialog-content" id="dialogContent"></div>
+    <div class="dialog-btns" id="dialogBtns"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>/* ---------- 本地缓存工具 ---------- */
+const CACHE_VERSION = 'v1';
+function cacheKey(type) { return `cache_${type}_${CACHE_VERSION}`; }
+
+function saveCache(type, data) {
+  try {
+    localStorage.setItem(cacheKey(type), JSON.stringify({ time: Date.now(), data: data }));
+  } catch (e) { console.warn('缓存写入失败', e); }
+}
+
+function loadCache(type) {
+  try {
+    const raw = localStorage.getItem(cacheKey(type));
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !Array.isArray(obj.data)) return null;
+    return obj.data;
+  } catch (e) { return null; }
+}
+
+const SUPABASE_URL = 'https://aswyiaxkvwisdaxbunpz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_TADTDycMyo6FvVXWXDc32Q_ffqRArRR';
+const ADMIN_EMAIL = '287746529@example.com';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentTab = 'task', taskData = [], productData = [], taskPage = 0, productPage = 0;
+const PAGE_SIZE = 10; let currentList = [];
+
+const categoryData = [
+  { id: 'zy', name: '自营专区', items: [ { name: '瓶盖码子', icon: '🥤', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' }, { name: '活动代充', icon: '👑', color: 'linear-gradient(135deg, #6C9EFF 0%, #3B82F6 100%)' }, { name: 'QQ名片赞', icon: '👍', color: 'linear-gradient(135deg, #A18CD1 0%, #FBC2EB 100%)' }, { name: '空间业务', icon: '🏠', color: 'linear-gradient(135deg, #B3D4FF 0%, #6C9EFF 100%)' } ]},
+  { id: 'study', name: '学习资料', items: [ { name: 'sup-学习通', icon: '📖', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' }, { name: 'sup-智慧树', icon: '🌳', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' }, { name: 'PUP 项目', icon: '🎓', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' }, { name: '小青项目', icon: '📘', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' }, { name: '毛豆项目', icon: '📗', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' }, { name: '奶昔项目', icon: '📙', color: 'linear-gradient(135deg, #4FACFE 0%, #00F2FE 100%)' } ]},
+  { id: 'dy', name: 'DY业务', items: [{ name: 'DY千川', icon: '📈', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'ks', name: 'KS业务', items: [{ name: 'KS代充', icon: '⚡', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'sph', name: '视频号业务', items: [{ name: '视频号代充', icon: '🎬', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'xhs', name: '小红书业务', items: [{ name: '小红书代充', icon: '📕', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'gzh', name: '公众号业务', items: [{ name: '公众号代充', icon: '📱', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'bili', name: '哔哩业务', items: [{ name: '哔哩代充', icon: '📺', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'wb', name: '微博业务', items: [{ name: '微博代充', icon: '🌐', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]},
+  { id: 'ds', name: '电商业务', items: [{ name: '电商代充', icon: '🛒', color: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)' }]}
+];
+
+function switchNav(pageName, element) {
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  element.classList.add('active');
+  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+  document.getElementById(pageName + 'Page').classList.add('active');
+  if (pageName === 'home') {
+    if (currentTab === 'task') { taskPage = 0; fetchData('task'); }
+    else { productPage = 0; fetchData('product'); }
+  }
+  if (pageName === 'category' && document.getElementById('sidebar').innerHTML === '') { renderCategoryPage(); }
+  if (pageName === 'order') { loadMyOrders(); }
+  if (pageName === 'mine') { checkLoginStatus(); }
+}
+
+async function fetchData(type) {
+  const tableName = type === 'task' ? 'tasks' : 'products';
+  const cached = loadCache(type);
+  const hasCache = cached && cached.length > 0;
+
+  if (hasCache) {
+    if (type === 'task') {
+      taskData = cached;
+      if (currentTab === 'task') { currentList = taskData; renderList(true); }
+    } else {
+      productData = cached;
+      if (currentTab === 'product') { currentList = productData; renderList(true); }
+    }
+  } else {
+    if (type === currentTab) {
+      document.getElementById('listContainer').innerHTML = '<div class="empty">正在加载数据...</div>';
+      document.getElementById('errorBar').innerText = '';
+    }
+  }
+
+  const { data, error } = await supabaseClient.from(tableName).select('*').order('created_at', { ascending: false });
+  if (error) {
+    if (type === currentTab && !hasCache) {
+      document.getElementById('errorBar').innerText = "⚠️ 加载失败：" + error.message;
+      document.getElementById('listContainer').innerHTML = '<div class="empty">😅 数据加载失败</div>';
+    }
+    return;
+  }
+
+  const freshData = data || [];
+  const changed = JSON.stringify(freshData) !== JSON.stringify(cached || []);
+  saveCache(type, freshData);
+
+  if (type === 'task') {
+    taskData = freshData;
+    if (currentTab === 'task' && changed) { currentList = taskData; renderList(true); }
+  } else {
+    productData = freshData;
+    if (currentTab === 'product' && changed) { currentList = productData; renderList(true); }
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabTask').className = tab === 'task' ? 'tab active' : 'tab';
+  document.getElementById('tabProduct').className = tab === 'product' ? 'tab active' : 'tab';
+  document.getElementById('searchInput').placeholder = tab === 'task' ? '搜索任务名称...' : '搜索商品名称...';
+  document.getElementById('searchInput').value = '';
+  if (tab === 'task') { taskPage = 0; currentList = taskData; renderList(true); }
+  else {
+    productPage = 0;
+    if (productData.length > 0) { currentList = productData; renderList(true); }
+    else { fetchData('product'); }
+  }
+}
+
+function refreshCurrent() {
+  showToast('正在刷新...');
+  if (currentTab === 'task') { taskPage = 0; fetchData('task'); }
+  else { productPage = 0; fetchData('product'); }
+}
+
+function renderList(reset = false) {
+  let container = document.getElementById('listContainer');
+  if (reset) {
+    container.innerHTML = '';
+    if (!currentList || currentList.length === 0) { container.innerHTML = '<div class="empty">😅 没有找到数据</div>'; return; }
+  }
+  let page = currentTab === 'task' ? taskPage : productPage;
+  let start = page * PAGE_SIZE; let end = Math.min(start + PAGE_SIZE, currentList.length);
+  if (start >= currentList.length) return;
+  let html = '';
+  for (let i = start; i < end; i++) {
+    let item = currentList[i];
+    if (currentTab === 'task') {
+      if (!item.title) continue;
+      html += `<div class="card">
+        <div class="card-header"><span class="card-title">${item.title}</span><span class="card-price">${item.amount || '0.00'}</span></div>
+        <div class="card-desc">${item.description || '无描述'}</div>
+        <div class="card-actions"><span class="card-tip">📸 记得截图</span>
+          <div class="card-btn-group">
+            <button class="btn-primary" onclick="openUrl('${(item.url || '').replace(/'/g, "\\'")}')">去完成</button>
+            <button class="btn-secondary" onclick="showSubmitDialog()">提交</button>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      if (!item.name) continue;
+      const safeName = (item.name || '').replace(/"/g, '&quot;');
+      html += `<div class="card">
+        <img loading="lazy" class="product-img" src="${item.image_url || 'https://picsum.photos/200/150'}" onerror="this.src='https://picsum.photos/200/150'"/>
+        <div class="card-header"><span class="card-title">${item.name}</span></div>
+        <div class="card-actions">
+          <span class="card-price">💰 ${item.price || '未知'}</span>
+          <button class="btn-primary"
+            data-id="${item.id}"
+            data-name="${safeName}"
+            data-price="${item.price || '0'}"
+            onclick="buyProduct(this.dataset.id, this.dataset.name, this.dataset.price)">立即购买</button>
+        </div>
+      </div>`;
+    }
+  }
+  container.insertAdjacentHTML('beforeend', html);
+  if (currentTab === 'task') taskPage++; else productPage++;
+}
+
+document.getElementById('listContainer').addEventListener('scroll', function() {
+  if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) renderList(false);
+});
+
+function doSearch() {
+  let kw = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (currentTab === 'task') { currentList = taskData.filter(t => t.title && t.title.toLowerCase().includes(kw)); taskPage = 0; }
+  else { currentList = productData.filter(p => p.name && p.name.toLowerCase().includes(kw)); productPage = 0; }
+  renderList(true);
+}
+
+function renderCategoryPage() {
+  document.getElementById('sidebar').innerHTML = categoryData.map((cat, index) => `<div class="sidebar-item ${index === 0 ? 'active' : ''}" onclick="switchCategory(${index}, this)">${cat.name}</div>`).join('');
+  renderCategoryContent(0);
+}
+function switchCategory(index, element) {
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+  element.classList.add('active'); renderCategoryContent(index);
+}
+function renderCategoryContent(index) {
+  const cat = categoryData[index];
+  const gridHtml = cat.items.map(item => `<div class="grid-item" onclick="showToast('点击了：${item.name}')"><div class="grid-icon" style="background: ${item.color};">${item.icon}</div><div class="grid-text">${item.name}</div></div>`).join('');
+  document.getElementById('contentArea').innerHTML = `<div class="section-title"><div class="section-icon">🏆</div>${cat.name}</div><div class="grid-list">${gridHtml}</div>`;
+}
+
+let currentCaptcha = "", generatedCode = "", countdownTimer = null;
+
+function drawCaptcha() {
+  const canvas = document.getElementById('captchaCanvas'); if (!canvas) return;
+  const ctx = canvas.getContext('2d'); const width = canvas.width, height = canvas.height;
+  ctx.clearRect(0, 0, width, height); ctx.fillStyle = '#E5E6EB'; ctx.fillRect(0, 0, width, height);
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; currentCaptcha = '';
+  for (let i = 0; i < 4; i++) currentCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+  ctx.font = 'bold 24px Arial'; ctx.textBaseline = 'middle';
+  for (let i = 0; i < 4; i++) {
+    ctx.save(); ctx.translate(15 + i * 28, height / 2 + (Math.random() * 6 - 3));
+    ctx.rotate((Math.random() - 0.5) * 0.5); ctx.fillStyle = `rgb(${Math.random() * 100}, ${Math.random() * 100}, ${Math.random() * 100})`;
+    ctx.fillText(currentCaptcha[i], 0, 0); ctx.restore();
+  }
+  ctx.strokeStyle = '#C9CDD4';
+  for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(Math.random() * width, Math.random() * height); ctx.lineTo(Math.random() * width, Math.random() * height); ctx.stroke(); }
+}
+
+function togglePasswordVisibility() {
+  const pwd = document.getElementById('loginPassword'); const eye = document.getElementById('eyeIcon');
+  if (pwd.type === 'password') { pwd.type = 'text'; eye.style.stroke = '#5B8FF9'; } else { pwd.type = 'password'; eye.style.stroke = '#86909C'; }
+}
+
+function switchAuthView(view) {
+  if (view === 'register') { document.getElementById('loginView').style.display = 'none'; document.getElementById('registerView').style.display = 'block'; }
+  else {
+    document.getElementById('loginView').style.display = 'block'; document.getElementById('registerView').style.display = 'none';
+    drawCaptcha(); clearInterval(countdownTimer);
+    const btn = document.getElementById('sendCodeBtn');
+    if (btn) { btn.disabled = false; btn.innerText = "获取验证码"; }
+  }
+}
+
+function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); switchNav('home', document.querySelector('.nav-item')); }
+
+async function handleRegister() {
+  const account = document.getElementById('regAccount').value.trim();
+  const password = document.getElementById('regPassword').value.trim();
+  const code = document.getElementById('regCode').value.trim();
+  if (!account || !password || !code) { showToast("请填写完整信息！"); return; }
+  if (account === '287746529' || account === 'admin') { showToast("此账号名不可用，请更换！"); return; }
+  if (code !== generatedCode) { showToast("验证码错误！"); return; }
+  const email = account + '@example.com';
+  const { data, error } = await supabaseClient.auth.signUp({ email: email, password: password });
+  if (error) {
+    let errorMsg = error.message;
+    if (errorMsg.includes('already registered') || errorMsg.includes('User already')) errorMsg = "该账户已被注册，请更换其他账号或直接登录！";
+    showDialog("⚠️ 注册失败", errorMsg, [{ text: "我知道了", type: "primary", action: "close" }]); return;
+  }
+  try { await supabaseClient.from('user_logs').insert([{ account: account }]); } catch (err) { console.log("写入名单失败", err); }
+  document.getElementById('regAccount').value = '';
+  document.getElementById('regPassword').value = '';
+  document.getElementById('regCode').value = ''; generatedCode = "";
+  showDialog("🎉 注册成功", `账号 "${account}" 注册成功！`, [{ text: "去登录", type: "primary", action: () => { document.getElementById('dialog').classList.remove('show'); switchAuthView('login'); } }]);
+}
+
+async function handleLogin() {
+  const account = document.getElementById('loginAccount').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const captchaInput = document.getElementById('loginCaptcha').value.trim();
+  if (!account || !password || !captchaInput) { showToast("请填写完整的登录信息！"); return; }
+  if (captchaInput.toUpperCase() !== currentCaptcha) { showToast("验证码错误！"); drawCaptcha(); return; }
+  const email = account + '@example.com';
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+  if (error) { showToast("登录失败：" + error.message); drawCaptcha(); return; }
+  localStorage.setItem('currentUser', JSON.stringify({ account: account, token: data.session.access_token }));
+  showToast("登录成功！");
+  document.getElementById('loginModal').classList.add('hidden');
+  checkLoginStatus();
+}
+
+function sendVerifyCode() {
+  const accountInput = document.getElementById('regAccount').value.trim();
+  if (!accountInput) { showToast("请先输入自定义账号！"); return; }
+  generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+  showToast(`验证码已发送：${generatedCode}`);
+  showDialog("📨 模拟短信", `您的验证码是：${generatedCode}`, [{ text: "知道了", type: "primary", action: "close" }]);
+  const btn = document.getElementById('sendCodeBtn'); let timeLeft = 60;
+  btn.disabled = true; btn.innerText = `${timeLeft}s 后重试`;
+  clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { clearInterval(countdownTimer); btn.disabled = false; btn.innerText = "获取验证码"; }
+    else btn.innerText = `${timeLeft}s 后重试`;
+  }, 1000);
+}
+
+async function checkLoginStatus() {
+  const loginModal = document.getElementById('loginModal');
+  const userView = document.getElementById('userView');
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    loginModal.classList.add('hidden');
+    userView.style.display = 'flex';
+    const displayName = session.user.email.split('@')[0];
+    document.getElementById('displayUserName').innerText = displayName;
+    let adminBtn = document.getElementById('adminBtn');
+    if (session.user.email === ADMIN_EMAIL) {
+      if (!adminBtn) {
+        adminBtn = document.createElement('button'); adminBtn.id = 'adminBtn'; adminBtn.innerText = '⚙️ 进入管理后台';
+        adminBtn.className = 'logout-btn'; adminBtn.style.background = '#1677FF'; adminBtn.style.color = '#FFF'; adminBtn.style.marginTop = '10px';
+        adminBtn.onclick = showAdminPanel; userView.appendChild(adminBtn);
+      }
+    } else { if (adminBtn) adminBtn.remove(); }
+  } else {
+    userView.style.display = 'none';
+    loginModal.classList.remove('hidden');
+    switchAuthView('login');
+    drawCaptcha();
+    const adminBtn = document.getElementById('adminBtn'); if (adminBtn) adminBtn.remove();
+  }
+}
+
+async function handleLogout() {
+  showDialog("退出登录", "确定要退出当前账号吗？", [
+    { text: "取消", type: "secondary", action: "close" },
+    { text: "确定退出", type: "primary", action: async () => { await supabaseClient.auth.signOut(); document.getElementById('dialog').classList.remove('show'); showToast("已安全退出"); checkLoginStatus(); } }
+  ]);
+}/* ---------- 购买流程（支付宝当面付） ---------- */
+async function buyProduct(productId, name, price) {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) { showToast('请先登录后再购买'); return; }
+  showDialog('🛒 确认下单', `
+    <div style="text-align:left;font-size:14px;">
+      <div style="margin-bottom:8px;">商品：<b>${name}</b></div>
+      <div style="margin-bottom:12px;">单价：<b style="color:#1677FF;">${price}</b></div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:13px;color:#86909C;margin-bottom:6px;">购买数量（件）：</div>
+        <input id="orderQty" type="number" value="1" min="1"
+               style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;">
+      </div>
+      <div>
+        <div style="font-size:13px;color:#86909C;margin-bottom:6px;">备注（选填）：</div>
+        <input id="orderRemark" placeholder="游戏账号/区服等，可不填"
+               style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box;">
+      </div>
+    </div>
+  `, [
+    { text: '取消', type: 'secondary', action: 'close' },
+    { text: '去支付', type: 'primary', action: () => createOrder(productId, name, price) }
+  ]);
+}
+
+async function createOrder(productId, name, price) {
+  const qty = parseInt(document.getElementById('orderQty').value) || 1;
+  const remark = document.getElementById('orderRemark').value.trim();
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) { showToast('登录已过期'); return; }
+  const unit = parseFloat(String(price).replace(/[^\d.]/g, '')) || 0;
+  const total = parseFloat((unit * qty).toFixed(2));
+  const orderNo = 'DD' + Date.now() + Math.floor(Math.random() * 1000);
+  showToast('正在创建订单...');
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/alipay-precreate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+      body: JSON.stringify({ orderNo, amount: total, productName: name, productId, qty, remark })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      showDialog('⚠️ 下单失败', data.error || '未知错误', [{ text: '我知道了', type: 'primary', action: 'close' }]);
+      return;
+    }
+    document.getElementById('dialog').classList.remove('show');
+    showAlipayQr(orderNo, name, total, data.qrCode);
+  } catch (e) {
+    showDialog('⚠️ 网络错误', e.message, [{ text: '我知道了', type: 'primary', action: 'close' }]);
+  }
+}
+
+let pollTimer = null;
+
+function showAlipayQr(orderNo, name, amount, qrCodeUrl) {
+  const alipayScheme = 'alipays://platformapi/startapp?saId=10000007&qrcode=' + encodeURIComponent(qrCodeUrl);
+  const isWechat = /MicroMessenger/i.test(navigator.userAgent);
+  showDialog('💳 支付宝扫码支付', `
+    <div style="text-align:center;line-height:1.6;">
+      <div>订单号：<b>${orderNo}</b></div>
+      <div>应付：<b style="color:#F53F3F;font-size:22px;">￥${amount}</b></div>
+      <div id="payQrcode" style="display:flex;justify-content:center;margin:14px 0;"></div>
+      <div style="font-size:12px;color:#86909C;">
+        ${isWechat ? '长按二维码保存 → 打开支付宝扫一扫 → 从相册选择' : '长按保存二维码，或截图后用支付宝扫一扫'}
+      </div>
+      <div style="margin-top:16px;">
+        <a href="${alipayScheme}" style="display:inline-block;background:#1677FF;color:white;padding:12px 28px;border-radius:24px;text-decoration:none;font-weight:bold;font-size:15px;">👉 点击跳转支付宝付款</a>
+      </div>
+      <div id="payStatus" style="font-size:14px;color:#86909C;margin-top:14px;">⏳ 等待支付中...</div>
+    </div>
+  `, [
+    { text: '关闭', type: 'primary', action: () => {
+        clearInterval(pollTimer);
+        document.getElementById('dialog').classList.remove('show');
+        loadMyOrders();
+    }}
+  ]);
+  const qrBox = document.getElementById('payQrcode');
+  if (qrBox) new QRCode(qrBox, { text: qrCodeUrl, width: 200, height: 200 });
+  clearInterval(pollTimer);
+  let elapsed = 0;
+  pollTimer = setInterval(async () => {
+    elapsed += 3;
+    if (elapsed > 300) {
+      clearInterval(pollTimer);
+      const s = document.getElementById('payStatus');
+      if (s) s.innerHTML = '<span style="color:#F53F3F;">订单已超时，请重新下单</span>';
+      return;
+    }
+    const st = await queryOrderStatus(orderNo);
+    if (st === 'delivered' || st === 'paid') {
+      clearInterval(pollTimer);
+      const s = document.getElementById('payStatus');
+      if (s) s.innerHTML = '<span style="color:#00B42A;font-size:16px;">✅ 支付成功，正在发货...</span>';
+      setTimeout(() => {
+        document.getElementById('dialog').classList.remove('show');
+        showToast('支付成功！到「订单」页查看发货内容');
+        loadMyOrders();
+      }, 1500);
+    }
+  }, 3000);
+}
+
+async function queryOrderStatus(orderNo) {
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return null;
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/query-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+      body: JSON.stringify({ orderNo })
+    });
+    const data = await res.json();
+    return data.success ? data.status : null;
+  } catch (e) { return null; }
+}
+
+/* ---------- 我的订单页 ---------- */
+async function loadMyOrders() {
+  const container = document.getElementById('orderListContainer');
+  if (!container) return;
+  container.innerHTML = '<div class="empty">正在加载...</div>';
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) { container.innerHTML = '<div class="empty">请先登录后查看订单</div>'; return; }
+  const account = session.user.email.split('@')[0];
+  const { data, error } = await supabaseClient.from('orders').select('*').eq('user_account', account).order('created_at', { ascending: false });
+  if (error) { container.innerHTML = '<div class="empty">加载失败：' + error.message + '</div>'; return; }
+  if (!data || !data.length) { container.innerHTML = '<div class="empty">还没有订单，去首页看看吧～</div>'; return; }
+  const statusMap = {
+    pending:   { text: '待支付', color: '#F53F3F' },
+    paid:      { text: '已支付', color: '#FF7D00' },
+    delivered: { text: '已发货', color: '#00B42A' },
+    cancelled: { text: '已取消', color: '#86909C' },
+  };
+  container.innerHTML = data.map(o => {
+    const s = statusMap[o.status] || { text: o.status, color: '#86909C' };
+    const safeContent = (o.delivered_content || '').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+    const contentHtml = o.delivered_content
+      ? `<div style="margin-top:10px;padding:12px;background:#F7F8FA;border-radius:10px;">
+           <div style="font-size:12px;color:#86909C;margin-bottom:6px;">🔑 发货内容（点击复制）</div>
+           <div onclick="copyText(\`${safeContent}\`)"
+                style="font-size:14px;color:#1D2129;word-break:break-all;cursor:pointer;line-height:1.6;white-space:pre-wrap;">${o.delivered_content}</div>
+         </div>` : '';
+    return `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" style="font-size:16px;">${o.product_name} × ${o.quantity}</span>
+          <span style="font-size:13px;color:${s.color};font-weight:bold;">${s.text}</span>
+        </div>
+        <div class="card-desc" style="margin-bottom:8px;">订单号：${o.order_no}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="card-price" style="font-size:16px;">￥${o.amount || o.price || 0}</span>
+          <span class="card-tip">${new Date(o.created_at).toLocaleString('zh-CN')}</span>
+        </div>
+        ${contentHtml}
+      </div>`;
+  }).join('');
+}
+
+function copyText(txt) { navigator.clipboard.writeText(txt).then(() => showToast('已复制到剪贴板')); }
+
+/* ---------- 管理后台 ---------- */
+let currentAdminTab = 'task';
+let currentAdminData = { tasks: [], products: [], users: [], orders: [] };
+
+async function showAdminPanel() {
+  let adminPage = document.getElementById('adminPage');
+  if (!adminPage) {
+    adminPage = document.createElement('div'); adminPage.id = 'adminPage';
+    adminPage.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#F7F8FA;z-index:99999;overflow-y:auto;';
+    document.body.appendChild(adminPage);
+  } else { adminPage.style.display = 'block'; }
+  adminPage.innerHTML = `
+    <div class="admin-header">
+      <h2 style="margin:0; font-size:18px;">⚙️ 管理后台</h2>
+      <button onclick="document.getElementById('adminPage').style.display='none'" style="padding:6px 12px;border:none;background:#F2F3F5;border-radius:8px;color:#4E5969;">关闭</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="adminTabTask" onclick="switchAdminTab('task')">📋 任务</button>
+      <button class="admin-tab" id="adminTabProduct" onclick="switchAdminTab('product')">🛍️ 商品</button>
+      <button class="admin-tab" id="adminTabOrder" onclick="switchAdminTab('order')">🧾 订单</button>
+      <button class="admin-tab" id="adminTabUser" onclick="switchAdminTab('user')">👥 用户</button>
+    </div>
+    <div class="admin-content" id="adminContent"></div>
+    <button class="admin-fab" id="adminFab" onclick="openAddForm()">+</button>
+  `;
+  switchAdminTab('task');
+}
+
+function switchAdminTab(tab) {
+  currentAdminTab = tab;
+  ['Task', 'Product', 'Order', 'User'].forEach(k => {
+    const el = document.getElementById('adminTab' + k);
+    if (el) el.className = 'admin-tab' + (tab === k.toLowerCase() ? ' active' : '');
+  });
+  const fab = document.getElementById('adminFab');
+  if (tab === 'user' || tab === 'order') { fab.style.display = 'none'; } else { fab.style.display = 'flex'; }
+  loadAdminList();
+}
+
+async function loadAdminList() {
+  const content = document.getElementById('adminContent');
+  content.innerHTML = '<div style="text-align:center; padding:40px; color:#86909C;">加载中...</div>';
+  if (currentAdminTab === 'task') {
+    const { data, error } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) { content.innerHTML = '<div style="text-align:center; padding:40px; color:#86909C;">暂无任务</div>'; return; }
+    currentAdminData.tasks = data;
+    content.innerHTML = data.map(item => `
+      <div class="admin-card">
+        <div class="admin-card-info">
+          <div class="admin-card-title">${item.title}</div>
+          <div class="admin-card-desc">💰 ${item.amount || '未填'} | ${item.description || '无描述'}</div>
+        </div>
+        <div class="admin-card-actions">
+          <button class="admin-btn-edit" onclick="openEditForm('task', ${item.id})">编辑</button>
+          <button class="admin-btn-del" onclick="deleteItem('task', ${item.id})">删除</button>
+        </div>
+      </div>`).join('');
+  } else if (currentAdminTab === 'product') {
+    const { data, error } = await supabaseClient.from('products').select('*').order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) { content.innerHTML = '<div style="text-align:center; padding:40px; color:#86909C;">暂无商品</div>'; return; }
+    currentAdminData.products = data;
+    const { data: cards } = await supabaseClient.from('product_cards').select('product_id').eq('status', 'unused');
+    const stockMap = {};
+    (cards || []).forEach(c => { stockMap[c.product_id] = (stockMap[c.product_id] || 0) + 1; });
+    content.innerHTML = data.map(item => `
+      <div class="admin-card">
+        <div class="admin-card-info">
+          <div class="admin-card-title">${item.name}</div>
+          <div class="admin-card-desc">
+            💰 ${item.price || '未填'} | ${item.deliver_type === 'pool' ? `卡密池 (剩余 ${stockMap[item.id] || 0})` : '固定内容'}
+          </div>
+        </div>
+        <div class="admin-card-actions">
+          ${item.deliver_type === 'pool' ? `<button class="admin-btn-edit" onclick="openCardsManager(${item.id})">卡密</button>` : ''}
+          <button class="admin-btn-edit" onclick="openEditForm('product', ${item.id})">编辑</button>
+          <button class="admin-btn-del" onclick="deleteItem('product', ${item.id})">删除</button>
+        </div>
+      </div>`).join('');
+  } else if (currentAdminTab === 'order') {
+    const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
+    if (error || !data || data.length === 0) { content.innerHTML = '<div style="text-align:center; padding:40px; color:#86909C;">暂无订单</div>'; return; }
+    currentAdminData.orders = data;
+    const colorMap = { pending: '#F53F3F', paid: '#FF7D00', delivered: '#00B42A', cancelled: '#86909C' };
+    content.innerHTML = data.map(o => `
+      <div class="admin-card">
+        <div class="admin-card-info">
+          <div class="admin-card-title">
+            ${o.product_name} × ${o.quantity}
+            <span style="font-size:11px;color:${colorMap[o.status] || '#86909C'};">[${o.status}]</span>
+          </div>
+          <div class="admin-card-desc">${o.order_no} | ${o.user_account} | ￥${o.amount}</div>
+        </div>
+        <div class="admin-card-actions">
+          ${o.status === 'pending' ? `<button class="admin-btn-edit" onclick="adminDeliver(${o.id}, '${o.order_no}')">确认收款</button>` : ''}
+          ${o.status === 'paid' ? `<button class="admin-btn-edit" onclick="adminDeliver(${o.id}, '${o.order_no}')">补发</button>` : ''}
+          ${o.status === 'pending' ? `<button class="admin-btn-del" onclick="updateOrderStatus(${o.id}, 'cancelled')">取消</button>` : ''}
+        </div>
+      </div>`).join('');
+  } else if (currentAdminTab === 'user') {
+    const { data, error } = await supabaseClient.from('user_logs').select('*').order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) { content.innerHTML = '<div style="text-align:center; padding:40px; color:#86909C;">暂无用户</div>'; return; }
+    currentAdminData.users = data;
+    content.innerHTML = data.map(item => `
+      <div class="admin-card">
+        <div class="admin-card-info">
+          <div class="admin-card-title">${item.account}</div>
+          <div class="admin-card-desc">${new Date(item.created_at).toLocaleString('zh-CN')}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+async function adminDeliver(id, orderNo) {
+  const { data, error } = await supabaseClient.rpc('deliver_order', { p_order_no: orderNo });
+  if (error) { showDialog('⚠️ 发货失败', error.message, [{ text: '我知道了', type: 'primary', action: 'close' }]); return; }
+  showToast('已确认收款并发货');
+  loadAdminList();
+}
+
+async function updateOrderStatus(id, status) {
+  const { error } = await supabaseClient.from('orders').update({ status }).eq('id', id);
+  if (error) return showToast('操作失败：' + error.message);
+  showToast('已更新');
+  loadAdminList();
+      }function openAddForm() {
+  if (currentAdminTab === 'task') {
+    showDialog("➕ 添加任务", `
+      <div style="text-align:left; font-size:14px;">
+        <input id="fTitle" placeholder="任务标题" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fAmount" placeholder="金额" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fDesc" placeholder="描述" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fUrl" placeholder="跳转链接" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+      </div>
+    `, [
+      { text: "取消", type: "secondary", action: "close" },
+      { text: "保存", type: "primary", action: () => { saveItem('task'); } }
+    ]);
+  } else if (currentAdminTab === 'product') {
+    showDialog("➕ 添加商品", `
+      <div style="text-align:left; font-size:14px;">
+        <input id="fName" placeholder="商品名称" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fPrice" placeholder="价格" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fImg" placeholder="图片链接(可选)" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <select id="fDeliverType" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+          <option value="single">固定内容（同一段内容发给所有买家）</option>
+          <option value="pool">卡密池（每卖一次抽一张）</option>
+        </select>
+        <textarea id="fDeliverContent" placeholder="固定内容模式下填发货内容；卡密池模式可留空" rows="3"
+          style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical;"></textarea>
+      </div>
+    `, [
+      { text: "取消", type: "secondary", action: "close" },
+      { text: "保存", type: "primary", action: () => { saveItem('product'); } }
+    ]);
+  }
+}
+
+function openEditForm(type, id) {
+  if (type === 'task') {
+    const item = currentAdminData.tasks.find(t => t.id === id);
+    if (!item) return;
+    showDialog("✏️ 修改任务", `
+      <div style="text-align:left; font-size:14px;">
+        <input id="fTitle" value="${(item.title || '').replace(/"/g, '&quot;')}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fAmount" value="${item.amount || ''}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fDesc" value="${(item.description || '').replace(/"/g, '&quot;')}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fUrl" value="${(item.url || '').replace(/"/g, '&quot;')}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+      </div>
+    `, [
+      { text: "取消", type: "secondary", action: "close" },
+      { text: "保存修改", type: "primary", action: () => { saveItem('task', id); } }
+    ]);
+  } else if (type === 'product') {
+    const item = currentAdminData.products.find(p => p.id === id);
+    if (!item) return;
+    showDialog("✏️ 修改商品", `
+      <div style="text-align:left; font-size:14px;">
+        <input id="fName" value="${(item.name || '').replace(/"/g, '&quot;')}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fPrice" value="${item.price || ''}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <input id="fImg" value="${item.image_url || ''}" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+        <select id="fDeliverType" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+          <option value="single" ${item.deliver_type === 'single' ? 'selected' : ''}>固定内容</option>
+          <option value="pool" ${item.deliver_type === 'pool' ? 'selected' : ''}>卡密池</option>
+        </select>
+        <textarea id="fDeliverContent" rows="3"
+          style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical;">${item.deliver_content || ''}</textarea>
+      </div>
+    `, [
+      { text: "取消", type: "secondary", action: "close" },
+      { text: "保存修改", type: "primary", action: () => { saveItem('product', id); } }
+    ]);
+  }
+}
+
+async function saveItem(type, id = null) {
+  if (type === 'task') {
+    const title = document.getElementById('fTitle').value.trim();
+    const amount = document.getElementById('fAmount').value.trim();
+    const description = document.getElementById('fDesc').value.trim();
+    const url = document.getElementById('fUrl').value.trim();
+    if (!title) { showToast("标题不能为空"); return; }
+    const payload = { title, amount, description, url };
+    let error;
+    if (id) { ({ error } = await supabaseClient.from('tasks').update(payload).eq('id', id)); }
+    else { ({ error } = await supabaseClient.from('tasks').insert([payload])); }
+    if (error) { showDialog("⚠️ 操作失败", error.message, [{ text: "我知道了", type: "primary", action: "close" }]); }
+    else { document.getElementById('dialog').classList.remove('show'); showToast(id ? "修改成功！" : "添加成功！"); loadAdminList(); fetchData('task'); }
+  } else if (type === 'product') {
+    const name = document.getElementById('fName').value.trim();
+    const price = document.getElementById('fPrice').value.trim();
+    const image_url = document.getElementById('fImg').value.trim();
+    const deliver_type = document.getElementById('fDeliverType').value;
+    const deliver_content = document.getElementById('fDeliverContent').value.trim();
+    if (!name) { showToast("名称不能为空"); return; }
+    if (deliver_type === 'single' && !deliver_content) { showToast("固定内容模式必须填发货内容"); return; }
+    const payload = { name, price, image_url, deliver_type, deliver_content };
+    let error;
+    if (id) { ({ error } = await supabaseClient.from('products').update(payload).eq('id', id)); }
+    else { ({ error } = await supabaseClient.from('products').insert([payload])); }
+    if (error) { showDialog("⚠️ 操作失败", error.message, [{ text: "我知道了", type: "primary", action: "close" }]); }
+    else { document.getElementById('dialog').classList.remove('show'); showToast(id ? "修改成功！" : "添加成功！"); loadAdminList(); fetchData('product'); }
+  }
+}
+
+async function deleteItem(type, id) {
+  showDialog("⚠️ 确认删除", "删除后无法恢复，确定要删除吗？", [
+    { text: "取消", type: "secondary", action: "close" },
+    { text: "确定删除", type: "primary", action: async () => {
+        let error;
+        if (type === 'task') { ({ error } = await supabaseClient.from('tasks').delete().eq('id', id)); }
+        else { ({ error } = await supabaseClient.from('products').delete().eq('id', id)); }
+        if (error) { showToast("删除失败：" + error.message); }
+        else { showToast("已删除"); loadAdminList(); if (type === 'task') fetchData('task'); else fetchData('product'); }
+        document.getElementById('dialog').classList.remove('show');
+    }}
+  ]);
+}
+
+async function openCardsManager(productId) {
+  const { data: cards } = await supabaseClient.from('product_cards')
+    .select('*').eq('product_id', productId).order('id', { ascending: false }).limit(200);
+  const unused = (cards || []).filter(c => c.status === 'unused').length;
+  const used = (cards || []).filter(c => c.status === 'used').length;
+  showDialog('🔑 卡密管理', `
+    <div style="text-align:left;font-size:14px;">
+      <div style="margin-bottom:10px;color:#86909C;">未使用 <b style="color:#00B42A;">${unused}</b> 张 | 已售出 ${used} 张</div>
+      <textarea id="cardInput" rows="6" placeholder="每行一张卡密，支持一次粘贴多张"
+        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;resize:vertical;"></textarea>
+      <button onclick="importCards(${productId})"
+        style="margin-top:10px;width:100%;height:44px;border-radius:22px;background:#1677FF;color:white;border:none;font-weight:bold;">
+        批量导入卡密
+      </button>
+      <div style="margin-top:14px;font-size:12px;color:#86909C;">最近导入：</div>
+      <div style="max-height:180px;overflow-y:auto;margin-top:6px;font-size:12px;color:#4E5969;">
+        ${(cards || []).slice(0, 20).map(c => `
+          <div style="padding:6px 0;border-bottom:1px solid #f0f0f0;">
+            <span style="color:${c.status === 'used' ? '#86909C' : '#1D2129'};">
+              ${c.status === 'used' ? '✅' : '🟢'} ${c.content.slice(0, 30)}${c.content.length > 30 ? '...' : ''}
+            </span>
+          </div>
+        `).join('') || '<div style="color:#C9CDD4;">暂无卡密</div>'}
+      </div>
+    </div>
+  `, [{ text: '关闭', type: 'primary', action: 'close' }]);
+}
+
+async function importCards(productId) {
+  const raw = document.getElementById('cardInput').value.trim();
+  if (!raw) { showToast('请先粘贴卡密'); return; }
+  const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!lines.length) { showToast('没有有效卡密'); return; }
+  const payload = lines.map(content => ({ product_id: productId, content, status: 'unused' }));
+  const { error } = await supabaseClient.from('product_cards').insert(payload);
+  if (error) { showToast('导入失败：' + error.message); return; }
+  showToast(`成功导入 ${lines.length} 张卡密`);
+  document.getElementById('dialog').classList.remove('show');
+  loadAdminList();
+}
+
+function openUrl(url) { if (!url) { showToast("暂无跳转链接"); return; } window.open(url, '_blank'); }
+function showSubmitDialog() {
+  showDialog("📸 提交完成", '<div style="text-align:center;line-height:1.6;">请扫码添加客服微信，发送截图审核。</div>', [{ text: "我知道了", type: "primary", action: "close" }]);
+}
+
+function showToast(msg) {
+  let toast = document.createElement('div'); toast.innerText = msg;
+  toast.style.cssText = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.75); color:white; padding:10px 20px; border-radius:20px; font-size:14px; z-index:99999; transition: opacity 0.3s;";
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1800);
+}
+
+function showDialog(title, content, buttons) {
+  document.getElementById('dialogTitle').innerText = title;
+  document.getElementById('dialogContent').innerHTML = content;
+  const btnContainer = document.getElementById('dialogBtns');
+  btnContainer.innerHTML = '';
+  buttons.forEach(btn => {
+    let el = document.createElement('button');
+    el.className = 'dialog-btn ' + btn.type;
+    el.innerText = btn.text;
+    el.onclick = () => {
+      if (btn.action === 'close') document.getElementById('dialog').classList.remove('show');
+      else if (typeof btn.action === 'function') btn.action();
+    };
+    btnContainer.appendChild(el);
+  });
+  document.getElementById('dialog').classList.add('show');
+}
+
+window.onload = () => {
+  Promise.all([fetchData('task'), fetchData('product')]).then(() => {
+    drawCaptcha();
+  });
+};
+</script>
+</body>
+</html>
